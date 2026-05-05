@@ -1,0 +1,14 @@
+# Mengabaikan folder library di kedua proyek
+chat-api/node_modules/
+chat-client/node_modules/
+
+# Mengabaikan file konfigurasi rahasia (MongoDB Atlas, JWT Secret)
+chat-api/.env
+chat-client/.env
+
+# Mengabaikan hasil build/production
+chat-client/dist/
+chat-client/build/
+
+# Mengabaikan file sistem
+.DS_Store
