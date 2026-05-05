@@ -1,0 +1,11 @@
+# Abaikan folder dependencies di kedua sisi
+chat-api/node_modules/
+chat-client/node_modules/
+
+# Abaikan file rahasia (MongoDB Atlas, dll)
+chat-api/.env
+chat-client/.env
+
+# Abaikan hasil build
+chat-client/dist/
+chat-client/build/
