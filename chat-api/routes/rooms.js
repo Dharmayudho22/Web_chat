@@ -144,4 +144,68 @@ router.post('/:id/messages', async (req, res) => {
   }
 })
 
+// PATCH /rooms/:id — edit nama & deskripsi (hanya creator)
+router.patch('/:id', async (req, res) => {
+  try {
+    const room = await Room.findById(req.params.id)
+    if (!room) return res.status(404).json({ error: 'Room tidak ditemukan' })
+    if (room.creator.toString() !== req.user._id.toString())
+      return res.status(403).json({ error: 'Hanya creator yang bisa edit' })
+    const { nama, deskripsi } = req.body
+    if (nama) room.nama = nama
+    if (deskripsi !== undefined) room.deskripsi = deskripsi
+    await room.save()
+    res.json(room)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// DELETE /rooms/:id — hapus room + semua pesannya (hanya creator)
+router.delete('/:id', async (req, res) => {
+  try {
+    const room = await Room.findById(req.params.id)
+    if (!room) return res.status(404).json({ error: 'Room tidak ditemukan' })
+    if (room.creator.toString() !== req.user._id.toString())
+      return res.status(403).json({ error: 'Hanya creator yang bisa hapus' })
+    await Message.deleteMany({ room: room._id })
+    await RoomMember.deleteMany({ room: room._id })
+    await room.deleteOne()
+    res.json({ message: 'Room berhasil dihapus' })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// PATCH /rooms/:roomId/messages/:msgId — edit pesan (hanya pengirim)
+router.patch('/:roomId/messages/:msgId', async (req, res) => {
+  try {
+    const msg = await Message.findById(req.params.msgId)
+    if (!msg) return res.status(404).json({ error: 'Pesan tidak ditemukan' })
+    if (msg.pengirim.toString() !== req.user._id.toString())
+      return res.status(403).json({ error: 'Hanya pengirim yang bisa edit' })
+    msg.isi = req.body.isi.trim()
+    msg.diedit = true
+    await msg.save()
+    await msg.populate('pengirim', 'nama')
+    res.json(msg)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// DELETE /rooms/:roomId/messages/:msgId — hapus pesan (hanya pengirim)
+router.delete('/:roomId/messages/:msgId', async (req, res) => {
+  try {
+    const msg = await Message.findById(req.params.msgId)
+    if (!msg) return res.status(404).json({ error: 'Pesan tidak ditemukan' })
+    if (msg.pengirim.toString() !== req.user._id.toString())
+      return res.status(403).json({ error: 'Hanya pengirim yang bisa hapus' })
+    await msg.deleteOne()
+    res.json({ message: 'Pesan dihapus', msgId: req.params.msgId })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 module.exports = router;
